@@ -1,0 +1,5 @@
+student_id,course_id,enrollment_date,grade
+1,101,2025-01-10,A
+1,102,2025-01-10,B
+2,103,2025-01-11,A
+3,104,2025-01-12,B

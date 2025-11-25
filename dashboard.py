@@ -1,74 +1,43 @@
+# dashboard.py
 import streamlit as st
-import psycopg2
 import pandas as pd
 import os
 
-from database import connect_db, load_csv
+# -----------------------------
+# Load CSVs
+# -----------------------------
+project_dir = os.path.dirname(os.path.abspath(__file__))
+
+students = pd.read_csv(os.path.join(project_dir, "data", "students.csv"))
+courses = pd.read_csv(os.path.join(project_dir, "data", "courses.csv"))
+enrollments = pd.read_csv(os.path.join(project_dir, "data", "enrollments.csv"))
 
 # -----------------------------
-# Page config
+# Streamlit App
 # -----------------------------
-st.set_page_config(page_title="UC Smart Manufacturing Dashboard", layout="wide")
+st.set_page_config(page_title="UC Smart Manufacturing Analytics", layout="wide")
 
 st.title("UC Smart Manufacturing Analytics Dashboard")
 
-# -----------------------------
-# Connect to DB
-# -----------------------------
-conn = connect_db()
-if not conn:
-    st.error("Cannot connect to database")
-    st.stop()
+# KPIs
+st.subheader("Key Metrics")
+col1, col2, col3 = st.columns(3)
+col1.metric("Total Students", len(students))
+col2.metric("Total Courses", len(courses))
+col3.metric("Total Enrollments", len(enrollments))
 
-# -----------------------------
-# Load CSVs safely (only if empty)
-# -----------------------------
-project_dir = os.path.dirname(os.path.abspath(__file__))
-load_csv(conn, "students", os.path.join(project_dir, "data", "students.csv"))
-load_csv(conn, "courses", os.path.join(project_dir, "data", "courses.csv"))
-load_csv(conn, "enrollments", os.path.join(project_dir, "data", "enrollments.csv"))
-
-# -----------------------------
-# Read data into pandas
-# -----------------------------
-students_df = pd.read_sql("SELECT * FROM students;", conn)
-courses_df = pd.read_sql("SELECT * FROM courses;", conn)
-enrollments_df = pd.read_sql("SELECT * FROM enrollments;", conn)
-
-# -----------------------------
-# Students overview
-# -----------------------------
-st.subheader("Students")
-st.dataframe(students_df)
-
-# Students count by major
+# Students by Major
 st.subheader("Students by Major")
-major_counts = students_df['major'].value_counts()
-st.bar_chart(major_counts)
+students_major = students.groupby('major').size().reset_index(name='count')
+st.bar_chart(data=students_major, x='major', y='count')
 
-# -----------------------------
 # Courses overview
-# -----------------------------
-st.subheader("Courses")
-st.dataframe(courses_df)
+st.subheader("Courses Offered")
+st.dataframe(courses)
 
-# Course counts
-st.subheader("Number of Courses by Credits")
-credit_counts = courses_df['credits'].value_counts()
-st.bar_chart(credit_counts)
-
-# -----------------------------
 # Enrollments overview
-# -----------------------------
 st.subheader("Enrollments")
-st.dataframe(enrollments_df)
+st.dataframe(enrollments)
 
-# Enrollments per course
-st.subheader("Enrollments per Course")
-enroll_counts = enrollments_df.groupby('course_id').size()
-st.bar_chart(enroll_counts)
-
-# -----------------------------
-# Future Extension
-# -----------------------------
-st.info("Future extension: Interactive dashboards with filters, Plotly charts, and KPIs for finance & operations")
+# Optional: Future extension placeholder
+st.info("Future extension: Add interactive visualizations or dashboards with Plotly/Streamlit components here.")
